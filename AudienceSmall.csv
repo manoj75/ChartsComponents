@@ -1,0 +1,5 @@
+MDG_PSID,MDG-PROFESSION,MDG-PRIMARY-SPECIALTY,MDG-SECONDARY-SPECIALTY,MDG-SPECIALTY-GROUP,MDG-PRACTICE-SIZE-RANGE,MDG-GENDER,MDG-COUNTY,Segment,MDG-Age-Range,MDG-Region,Targetable,MDG-Time-Zone,MDG-Email-available
+0000345fb6002bc0450e59d3ac4aa07c,Physician,Ophthalmology,,Ophthalmology,50 plus,,SUFFOLK COUNTY,Px - Inj-Unclassified,,Mid-Atlantic,1,EST,1
+00018230359639f3284761738b47535a,Physician,Ophthalmology,,Ophthalmology,,F,BERGEN COUNTY,Target List,46 to 50,Mid-Atlantic,1,EST,1
+000600755cac7052454b1b861a8b62c6,Physician,Orthopedic Surgery,,Orthopedics,6 to 10,M,COCONINO COUNTY,Px - Inj-Unclassified,46 to 50,Southwest,1,PST,1
+0006289823c4edcb5fb15c752bb94e45,Physician,Urology,,Urology,1 to 5,M,SAN DIEGO COUNTY,Px - Inj-Unclassified,41 to 45,West,1,PST,1

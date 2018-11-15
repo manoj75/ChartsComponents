@@ -1,0 +1,53 @@
+<html>
+    <head>
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="dc.css"/>
+    <script type="text/javascript" src="d3.js"></script>
+<script type="text/javascript" src="crossfilter.js"></script>
+<script type="text/javascript" src="dc.js"></script>       
+    </head>
+    <body>MedData Dashboard, Load 60K</body>
+
+    <div id="chart-ring-year22" style="width:300px; height:300px;border:1px solid red">
+    </div>   
+<!--
+    MDG_PSID,MDG-PROFESSION,MDG-PRIMARY-SPECIALTY,MDG-SECONDARY-SPECIALTY,MDG-SPECIALTY-GROUP,MDG-PRACTICE-SIZE-RANGE,MDG-GENDER,MDG-COUNTY,Segment,MDG-Age-Range,MDG-Region,Targetable,MDG-Time-Zone,MDG-Email-available
+0000345fb6002bc0450e59d3ac4aa07c,Physician,Ophthalmology,,Ophthalmology,50 plus,,SUFFOLK COUNTY,Px - Inj-Unclassified,,Mid-Atlantic,1,EST,1
+00018230359639f3284761738b47535a,Physician,Ophthalmology,,Ophthalmology,,F,BERGEN COUNTY,Target List,46 to 50,Mid-Atlantic,1,EST,1
+000600755cac7052454b1b861a8b62c6,Physician,Orthopedic Surgery,,Orthopedics,6 to 10,M,COCONINO COUNTY,Px - Inj-Unclassified,46 to 50,Southwest,1,PST,1
+0006289823c4edcb5fb15c752bb94e45,Physician,Urology,,Urology,1 to 5,M,SAN DIEGO COUNTY,Px - Inj-Unclassified,41 to 45,West,1,PST,1
+-->
+    <script language="javascript">
+  //d3.csv("Audience.csv", function(error,data) {
+var exposureGroup;
+var exposureDim;
+d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv", function(error,data) {    
+    console.log(error);  
+    if (error) throw error;
+    //console.log(data);
+    ndx=crossfilter(data);
+    //console.log(ndx.size());
+    //console.log(ndx);
+    //var all=ndx.groupAll();
+    //var PrimarySpecialtyDimension = ndx.dimension(function(d) {return d["MDG PRIMARY SPECIALTY"];});
+    //var PrimarySpecialtyDimension = ndx.dimension(function(d) {return d["MDG-PRIMARY-SPECIALTY"];});
+    //var PrimarySpecialtyDimension = ndx.dimension(function(d) {return d["MDG-PRIMARY-SPECIALTY"];});
+    //console.log(PrimarySpecialtyDimension.top(3));
+    exposureDim=ndx.dimension(function(d){return d["Exposed"]});
+    console.log("hi");
+    console.log(exposureDim);
+    exposureGroup=exposureDim.group();
+    console.log(exposureGroup.all());
+
+    
+    var yearRingChart22   = dc.pieChart("#chart-ring-year22");
+    yearRingChart22
+    .width(250).height(250)
+    .dimension(exposureDim)
+    .group(exposureGroup)
+    .innerRadius(60);
+    dc.renderAll();
+});
+
+    </script>
+    </html>
