@@ -31,21 +31,28 @@ d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv", function(error,data) {
     if (error) throw error;
     
     ndx=crossfilter(data);
-    exposureDim     =   ndx.dimension(function(d){return d["Exposed"]});
+    exposureDim     =   ndx.dimension(function(d){return d["Exposed"]==""?"exposed":"not-exposed"});
     professionDim   =   ndx.dimension(function(d){return d["MDG PROFESSION"]});
 
     exposureGroup=exposureDim.group();
     professionGroup=professionDim.group();
+    exposureGroupAll=exposureDim.group(); //Not with reductio
 
     var reducer =   reductio()
                     .exception(function(d) { return d.MDG_PSID; })
+                    .count(true)
                     .exceptionCount(true);
                     //.exceptionSum(function(d) { return d.num; });
-
+    
     reducer(exposureGroup);
     reducer(professionGroup);
-
-    console.log(professionGroup.top(Infinity));
+    console.log("vount");
+    console.log(exposureGroup.all()[0].value.exceptionCount + exposureGroup.all()[1].value.exceptionCount);
+    //console.log(exposureGroupAll.all());
+    console.log("jjj");
+    console.log(exposureGroup);
+    //console.log(exposureGroup.top(Infinity));
+    //console.log(professionGroup.top(Infinity));
     
 
     var ExposureRing        = dc.pieChart("#ring-chart-exposure","reductio");
@@ -64,7 +71,36 @@ d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv", function(error,data) {
     .valueAccessor(function (p) {
             return p.value.exceptionCount;
         })
-    .innerRadius(60);
+    .innerRadius(60)
+    .label(function(d){
+        var totalCount=0;
+        var label="";
+        console.log("pppp");
+        console.log(exposureGroup.all());
+        for(i=0;i<exposureGroup.all().length;i++)
+        {
+            console.log("all");
+            totalCount=totalCount+exposureGroup.all()[i].value.exceptionCount;
+            console.log("totalCount="+totalCount);
+        }
+        //console.log("totalCount="+totalCount);
+        label += '(' + Math.floor(d.value.exceptionCount / totalCount * 100) + '%)';
+        //console.log(exposureGroup.all());
+        //console.log(d);
+        return label;
+        //console.log(this);
+        //console.log(d.key);
+        //console.log(d.endAngle);
+        //console.log(d.startAngle);
+        //d.key + ' ' + Math.round((d.endAngle - d.startAngle) / Math.PI * 50) + '%';
+        //console.log("all");
+        //console.log(d.keys);
+        //console.log(d.value.exceptionCount);
+        /*if (all.value()) {
+                label += '(' + Math.floor(d.value / all.value() * 100) + '%)';
+            }
+        return label;*/    
+        });
     
     /*ExposureRing.on('pretransition', function(chart) {
           chart.selectAll('.pie-slice text')
