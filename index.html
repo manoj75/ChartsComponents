@@ -2,9 +2,9 @@
     <head>
         <link href="bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" type="text/css" href="dc.css"/>
-        <script type="text/javascript" src="d3.js"></script>
-        <script type="text/javascript" src="crossfilter.js"></script>
-        <script type="text/javascript" src="dc.js"></script>
+        <script type="text/javascript" src="js/d3.js"></script>
+        <script type="text/javascript" src="js/crossfilter.js"></script>
+        <script type="text/javascript" src="js/dc.js"></script>
         <script type="text/javascript" src="reductio.min.js"></script>       
     </head>
     <body>MedData Dashboard</body>
@@ -19,6 +19,8 @@
         <div class="row">    
             <div id="ring-chart-exposure" class="col-sm-6"></div>
             <div id="row-chart-profession" class="col-sm-6"></div>
+            <div id="bar-chart-profession" class="col-sm-6"></div>
+            
         </div>
     </div>   
 <script language="javascript">
@@ -26,43 +28,127 @@ var exposureGroup;
 var exposureDim;
 var professionDim;
 var select1 = dc.selectMenu('#select1',"reductio");
-d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv", function(error,data) {    
-    console.log(error);  
-    if (error) throw error;
-    
+//d3.csv("New.csv", function(error,data) {    
+//d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv", function(error,data) {
+d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv").then(function(data) {    
+    //console.log(error);  
+    //if (error) throw error;
+    data.forEach(function(d) {
+    d["Exposed"] = +d["Exposed"];
+    d["Not exposed"] = +d["Not exposed"];
+  });
     ndx=crossfilter(data);
+
     exposureDim     =   ndx.dimension(function(d){return d["Exposed"]==""?"exposed":"not-exposed"});
     professionDim   =   ndx.dimension(function(d){return d["MDG PROFESSION"]});
 
-    exposureGroup=exposureDim.group();
-    professionGroup=professionDim.group();
-    exposureGroupAll=exposureDim.group(); //Not with reductio
+    //professionGroupNonDistinct=professionDim.group().reduceCount();
 
-    var reducer =   reductio()
+    professionGroup=professionDim.group();
+    exposureGroup=exposureDim.group();
+
+    /*var reducer =   reductio()
                     .exception(function(d) { return d.MDG_PSID; })
-                    .count(true)
                     .exceptionCount(true);
                     //.exceptionSum(function(d) { return d.num; });
-    
-    reducer(exposureGroup);
-    reducer(professionGroup);
-    console.log("vount");
-    console.log(exposureGroup.all()[0].value.exceptionCount + exposureGroup.all()[1].value.exceptionCount);
-    //console.log(exposureGroupAll.all());
-    console.log("jjj");
-    console.log(exposureGroup);
-    //console.log(exposureGroup.top(Infinity));
-    //console.log(professionGroup.top(Infinity));
+    */
+
+    var reducer1 = reductio();
+    reducer1.exception(function(d){return d.MDG_PSID;}).exceptionCount(true);
+    reducer1.value("Exposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Exposed"]; });
+    reducer1.value("NotExposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Not exposed"]; });
+
+    //professionGroup1=professionDim.group();
+    reducer1(professionGroup);
+
+    //reducer(exposureGroup);
+    //reducer(professionGroup);
+    //console.log(exposureGroup);
     
 
-    var ExposureRing        = dc.pieChart("#ring-chart-exposure","reductio");
-    var ProfessionBarChart  = dc.rowChart("#row-chart-profession","reductio");
+    //var ExposureRing        = dc.pieChart("#ring-chart-exposure","reductio");
+    //var ProfessionRowChart  = dc.rowChart("#row-chart-profession","reductio");
     
     select1
     .dimension(professionDim)
     .group(professionDim.group())
     .controlsUseVisibility(true);
 
+
+
+function getTops(source_group,count) {
+    return{
+        all:function()
+        {
+            return source_group.top(count);
+        }
+    };
+}
+var ProfessionBarChart  = dc.barChart("#bar-chart-profession","reductio");
+var TopProfession = getTops(professionGroup,1);
+
+
+ProfessionBarChart
+    .width(400)
+    .height(380)
+    .x(d3.scaleBand())
+    .xUnits(dc.units.ordinal)
+    .brushOn(false)
+    .xAxisLabel('Profession')
+    //.yAxisLabel('')
+    .dimension(professionDim)
+    .barPadding(0.1)
+    .outerPadding(0.05)
+    .group(TopProfession,"Exposed")
+    .valueAccessor(function(p)
+    {
+        //console.log(p);
+        //console.log(p.value.exceptionCount);
+        console.log("ppppppppppppppppppppppppppp");
+        console.log(p);
+        console.log("ppppppppppppppppppppppppppp");
+        return p.value.Exposed.exceptionSum;
+    })
+    .title(function(d) 
+    {
+        console.log(d);
+        return d.key + '[' + this.layer + ']: ' + d.value[this.layer].exceptionSum;
+    })
+    .stack(TopProfession, "NotExposed", function (p) 
+    {
+        console.log("-------------------------------");
+        console.log(p);
+        return p.value.NotExposed.exceptionSum;
+        console.log("-------------------------------");
+    })
+    .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5));
+/*
+    ProfessionBarChart
+    .width(768)
+    .height(480)
+    .x(d3.scale.linear().domain([6,20]))
+    .brushOn(false)
+    .yAxisLabel("This is the Y Axis!")
+    .dimension(professionDim)
+    .group(professionGroupNonDistinct)
+    .valueAccessor(function(p){
+        console.log("ppppppp")
+        console.log(p);
+        console.log(p.value.exceptionCount);
+
+        console.log("ppppppp")
+        return p.value.exceptionCount;
+    })
+    .on('renderlet', function(chart) {
+        chart.selectAll('rect').on("click", function(d) {
+            console.log("click!", d);
+        });
+        
+    });
+    */
+
+
+    /*
     ExposureRing
     .width(250).height(250)
     .dimension(exposureDim)
@@ -75,47 +161,16 @@ d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv", function(error,data) {
     .label(function(d){
         var totalCount=0;
         var label="";
-        console.log("pppp");
-        console.log(exposureGroup.all());
         for(i=0;i<exposureGroup.all().length;i++)
         {
-            console.log("all");
             totalCount=totalCount+exposureGroup.all()[i].value.exceptionCount;
-            console.log("totalCount="+totalCount);
         }
-        //console.log("totalCount="+totalCount);
-        label += '(' + Math.floor(d.value.exceptionCount / totalCount * 100) + '%)';
-        //console.log(exposureGroup.all());
-        //console.log(d);
+        label += d.key + '-' + Math.floor(d.value.exceptionCount / totalCount * 100) + '%';
         return label;
-        //console.log(this);
-        //console.log(d.key);
-        //console.log(d.endAngle);
-        //console.log(d.startAngle);
-        //d.key + ' ' + Math.round((d.endAngle - d.startAngle) / Math.PI * 50) + '%';
-        //console.log("all");
-        //console.log(d.keys);
-        //console.log(d.value.exceptionCount);
-        /*if (all.value()) {
-                label += '(' + Math.floor(d.value / all.value() * 100) + '%)';
-            }
-        return label;*/    
         });
-    
-    /*ExposureRing.on('pretransition', function(chart) {
-          chart.selectAll('.pie-slice text')
-              .text('')
-            .append('tspan')
-              .text(function(d) { return d.name; })
-            .append('tspan')
-              .attr('x', 100)
-              .attr('text-anchor', 'end')
-              .text(function(d) { return d.data; });
-      });
-*/
-    console.log(ProfessionBarChart);    
-     
-     ProfessionBarChart
+    */
+    /* 
+     ProfessionRowChart
     .dimension(professionDim)
     .group(professionGroup)
     .elasticX(true)
@@ -128,12 +183,10 @@ d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv", function(error,data) {
             console.log("click!", d);
         });
     });
-    
+    */
+
     dc.renderAll("reductio");
 });
-
-
-
 
     </script>
     </html>
