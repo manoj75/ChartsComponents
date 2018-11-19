@@ -10,9 +10,9 @@
     <body>MedData Dashboard</body>
     <div class="container">
         <div class="row">
-            <div id="select1">
+            <div id="selectProfession">
                 <div>
-                    <a class='reset' href="javascript:console.log(select1);select1.filterAll();dc.redrawAll('reductio')"  style='visibility: hidden;'>reset</a>
+                    <a class='reset' href="javascript:console.log(selectProfession);selectProfession.filterAll();dc.redrawAll('reductio')"  style='visibility: hidden;'>reset</a>
                 </div>
             </div>
         </div>
@@ -20,6 +20,7 @@
             <div id="ring-chart-exposure" class="col-sm-6"></div>
             <div id="row-chart-profession" class="col-sm-6"></div>
             <div id="bar-chart-profession" class="col-sm-6"></div>
+            <div id="bar-chart-specialtyGroup" class="col-sm-6"></div>
             
         </div>
     </div>   
@@ -27,25 +28,26 @@
 var exposureGroup;
 var exposureDim;
 var professionDim;
-var select1 = dc.selectMenu('#select1',"reductio");
+var selectProfession = dc.selectMenu('#selectProfession',"reductio");
 //d3.csv("New.csv", function(error,data) {    
 //d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv", function(error,data) {
 d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv").then(function(data) {    
-    //console.log(error);  
     //if (error) throw error;
     data.forEach(function(d) {
     d["Exposed"] = +d["Exposed"];
     d["Not exposed"] = +d["Not exposed"];
   });
+
     ndx=crossfilter(data);
 
-    exposureDim     =   ndx.dimension(function(d){return d["Exposed"]==""?"exposed":"not-exposed"});
     professionDim   =   ndx.dimension(function(d){return d["MDG PROFESSION"]});
-
-    //professionGroupNonDistinct=professionDim.group().reduceCount();
-
     professionGroup=professionDim.group();
+
+    exposureDim     =   ndx.dimension(function(d){return d["Exposed"]==""?"exposed":"not-exposed"});
     exposureGroup=exposureDim.group();
+
+    specialtyGrpDim     =   ndx.dimension(function(d){return d["MDG SPECIALTY GROUP"]});
+    specialtyGrpGroup   =   specialtyGrpDim.group();
 
     /*var reducer =   reductio()
                     .exception(function(d) { return d.MDG_PSID; })
@@ -53,41 +55,43 @@ d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv").then(function(data) {
                     //.exceptionSum(function(d) { return d.num; });
     */
 
-    var reducer1 = reductio();
-    reducer1.exception(function(d){return d.MDG_PSID;}).exceptionCount(true);
-    reducer1.value("Exposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Exposed"]; });
-    reducer1.value("NotExposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Not exposed"]; });
+    var reducer = reductio();
+    reducer.exception(function(d){return d.MDG_PSID;}).exceptionCount(true);
+    reducer.value("Exposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Exposed"]; });
+    reducer.value("NotExposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Not exposed"]; });
 
-    //professionGroup1=professionDim.group();
-    reducer1(professionGroup);
-
+    reducer(professionGroup);
+    reducer(specialtyGrpGroup);
+    
     //reducer(exposureGroup);
     //reducer(professionGroup);
-    //console.log(exposureGroup);
     
-
     //var ExposureRing        = dc.pieChart("#ring-chart-exposure","reductio");
     //var ProfessionRowChart  = dc.rowChart("#row-chart-profession","reductio");
     
-    select1
-    .dimension(professionDim)
-    .group(professionDim.group())
-    .controlsUseVisibility(true);
-
-
+selectProfession
+.dimension(professionDim)
+.group(professionDim.group())
+.controlsUseVisibility(true);
 
 function getTops(source_group,count) {
     return{
         all:function()
         {
-            return source_group.top(count);
+            if (count==0)//Send all groups
+            {
+                return source_group.all();
+            }
+            else
+            {
+                return source_group.top(count);
+            }
         }
     };
 }
+
 var ProfessionBarChart  = dc.barChart("#bar-chart-profession","reductio");
-var TopProfession = getTops(professionGroup,1);
-
-
+var TopProfession = getTops(professionGroup,0);
 ProfessionBarChart
     .width(400)
     .height(380)
@@ -103,25 +107,51 @@ ProfessionBarChart
     .valueAccessor(function(p)
     {
         //console.log(p);
-        //console.log(p.value.exceptionCount);
-        console.log("ppppppppppppppppppppppppppp");
-        console.log(p);
-        console.log("ppppppppppppppppppppppppppp");
         return p.value.Exposed.exceptionSum;
     })
     .title(function(d) 
     {
-        console.log(d);
         return d.key + '[' + this.layer + ']: ' + d.value[this.layer].exceptionSum;
     })
     .stack(TopProfession, "NotExposed", function (p) 
     {
-        console.log("-------------------------------");
-        console.log(p);
         return p.value.NotExposed.exceptionSum;
-        console.log("-------------------------------");
     })
     .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5));
+
+
+var SpecialtyGroupBarChart  = dc.barChart("#bar-chart-specialtyGroup","reductio");
+
+var TopSpecialtyGroup = getTops(specialtyGrpGroup,5);
+console.log(TopSpecialtyGroup.all());
+SpecialtyGroupBarChart
+    .width(400)
+    .height(380)
+    .x(d3.scaleBand())
+    .xUnits(dc.units.ordinal)
+    .brushOn(false)
+    .xAxisLabel('Specialty Group')
+    //.yAxisLabel('')
+    .dimension(specialtyGrpDim)
+    .barPadding(0.1)
+    .outerPadding(0.05)
+    .group(TopSpecialtyGroup,"Exposed")
+    .valueAccessor(function(p)
+    {
+        return p.value.Exposed.exceptionSum;
+    })
+    .title(function(d) 
+    {
+        return d.key + '[' + this.layer + ']: ' + d.value[this.layer].exceptionSum;
+    })
+    .stack(TopSpecialtyGroup, "NotExposed", function (p) 
+    {
+        return p.value.NotExposed.exceptionSum;
+    })
+    .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5));
+
+
+
 /*
     ProfessionBarChart
     .width(768)
