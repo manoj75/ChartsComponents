@@ -25,16 +25,18 @@
         <div class="row">    
                 <div id="bar-chart-profession-target" class="col-sm-6"></div>
                 <div id="bar-chart-specialtyGroup-target" class="col-sm-6"></div>
-            </div>
+        </div>
+        <div class="row">    
+                <div id="row-chart-domain" class="col-sm-6"></div>
+                <div id="row-chart-category" class="col-sm-6"></div>
+        </div>
             
     </div>   
 <script language="javascript">
 var exposureGroup;
 var exposureDim;
 var professionDim;
-var selectProfession = dc.selectMenu('#selectProfession',"reductio");
-//d3.csv("New.csv", function(error,data) {    
-//d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv", function(error,data) {
+
 d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv").then(function(data) {    
     //if (error) throw error;
     data.forEach(function(d) {
@@ -45,67 +47,58 @@ d3.csv("MDG_Combined_Audience-Exposure_Dataset.csv").then(function(data) {
 
     ndx=crossfilter(data);
 
-    professionDim               =   ndx.dimension(function(d){return d["MDG PROFESSION"]});
-    professionGroup             =   professionDim.group();
-    ProfessionTargettableGroup  =   professionDim.group();
+    domainDim                   =   ndx.dimension(function(d){return d["Domain"]});
+    domainGroup                 =   domainDim.group();
+    categoryDim                 =   ndx.dimension(function(d){return d["iab_category_name"]});
+    categoryGroup               =   categoryDim.group();
 
-    exposureDim                 =   ndx.dimension(function(d){return d["Exposed"]==""?"exposed":"not-exposed"});
-    exposureGroup               =   exposureDim.group();
+    //professionDim               =   ndx.dimension(function(d){return d["MDG PROFESSION"]});
+    //professionGroup             =   professionDim.group();
+    //ProfessionTargettableGroup  =   professionDim.group();
+
+    //exposureDim                 =   ndx.dimension(function(d){return d["Exposed"]==""?"exposed":"not-exposed"});
+    //exposureGroup               =   exposureDim.group();
+
+    //specialtyGrpDim                 =   ndx.dimension(function(d){return d["MDG SPECIALTY GROUP"]});
+    //specialtyGrpGroup               =   specialtyGrpDim.group();
+    //specialtyGrpTargettableGroup    =   specialtyGrpDim.group();
 
 
-    specialtyGrpDim                 =   ndx.dimension(function(d){return d["MDG SPECIALTY GROUP"]});
-    specialtyGrpGroup               =   specialtyGrpDim.group();
-    specialtyGrpTargettableGroup    =   specialtyGrpDim.group();
+    //var reducer = reductio();
+    //reducer.exception(function(d){return d.MDG_PSID;}).exceptionCount(true);
+    //reducer.value("Exposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Exposed"]; });
+    //reducer.value("NotExposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Not exposed"]; });
 
-    /*var reducer =   reductio()
-                    .exception(function(d) { return d.MDG_PSID; })
-                    .exceptionCount(true);
-                    //.exceptionSum(function(d) { return d.num; });
-    */
-
-    var reducer = reductio();
-    reducer.exception(function(d){return d.MDG_PSID;}).exceptionCount(true);
-    reducer.value("Exposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Exposed"]; });
-    reducer.value("NotExposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Not exposed"]; });
-
-    reducer(professionGroup);
-    reducer(specialtyGrpGroup);
+    //reducer(professionGroup);
+    //reducer(specialtyGrpGroup);
     
 
-    var reducerTargettable = reductio();
-    //reducerTargettable.exception(function(d){return d.MDG_PSID;}).exceptionCount(true);
-    reducerTargettable.exception(function(d){return d.MDG_PSID;}).exceptionCount(function(d){if(d.Targetable==1) return d.MDG_PSID;});
-    reducerTargettable.value("Exposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d.Targetable === 1 ? d["Exposed"]:0; });
-    reducerTargettable.value("NotExposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d.Targetable === 1 ? d["Not exposed"]:0; });
+    //var reducerTargettable = reductio();
+    //reducerTargettable.exception(function(d){return d.MDG_PSID;}).exceptionCount(function(d){if(d.Targetable==1) return d.MDG_PSID;});
+    //reducerTargettable.value("Exposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d.Targetable === 1 ? d["Exposed"]:0; });
+    //reducerTargettable.value("NotExposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d.Targetable === 1 ? d["Not exposed"]:0; });
 
-    reducerTargettable(ProfessionTargettableGroup);
-    reducerTargettable(specialtyGrpTargettableGroup);
+    //reducerTargettable(ProfessionTargettableGroup);
+    //reducerTargettable(specialtyGrpTargettableGroup);
     
-    //var typeDim = livingThings.dimension(function(d){return d.type});
-    /*
-    var targettableProfessionGroup = professionDim.group().reduceSum(function(d) 
-    {
-        return d.Targetable === "1" ? 1 : 0;
-    });*/
-    
-    console.log("------------------ Targettable------------------------");
-    console.log(ProfessionTargettableGroup.all());
-    console.log("-------------------------------------------------------");
+    //console.log("------------------ Targettable------------------------");
+    //console.log(ProfessionTargettableGroup.all());
+    //console.log("-------------------------------------------------------");
 
-    console.log("-----------------------ALL-----------------------------");
-    console.log(professionGroup.all());
-    console.log("-------------------------------------------------------");
+    //console.log("-----------------------ALL-----------------------------");
+    //console.log(professionGroup.all());
+    //console.log("-------------------------------------------------------");
 
     //reducer(exposureGroup);
     //reducer(professionGroup);
     
     //var ExposureRing        = dc.pieChart("#ring-chart-exposure","reductio");
     //var ProfessionRowChart  = dc.rowChart("#row-chart-profession","reductio");
-    
-selectProfession
-.dimension(professionDim)
-.group(professionDim.group())
-.controlsUseVisibility(true);
+    //var selectProfession = dc.selectMenu('#selectProfession',"reductio");
+    //selectProfession
+    //.dimension(professionDim)
+    //.group(professionDim.group())
+    //.controlsUseVisibility(true);
 
 function getTops(source_group,count) {
     return{
@@ -123,6 +116,7 @@ function getTops(source_group,count) {
     };
 }
 
+/*
 var ProfessionBarChart  = dc.barChart("#bar-chart-profession","reductio");
 var TopProfession = getTops(professionGroup,0);
 ProfessionBarChart
@@ -247,8 +241,37 @@ TargettableSpecialtyGroupBarChart
         return p.value.NotExposed.exceptionSum;
     })
     .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5));
+*/
 
 
+    var DomainRowChart  = dc.rowChart("#row-chart-domain","reductio");
+    var Topdomain   =   getTops(domainGroup,10);
+    console.log(Topdomain.all());
+    DomainRowChart
+    .dimension(domainDim)
+    .group(Topdomain)
+    .elasticX(true)
+    .labelOffsetX(10)
+    .on('renderlet', function(chart) {
+        chart.selectAll('rect').on("click", function(d) {
+            console.log("click!", d);
+        });
+    });
+
+    var CategoryRowChart    =   dc.rowChart("#row-chart-category","reductio");
+    var TopCategory         =   getTops(categoryGroup,10);
+    console.log(TopCategory.all());
+    CategoryRowChart
+    .dimension(categoryDim)
+    .group(TopCategory)
+    .elasticX(true)
+    .labelOffsetX(10)
+    .on('renderlet', function(chart) {
+        chart.selectAll('rect').on("click", function(d) {
+            console.log("click!", d);
+        });
+    });
+    
 
 /*
     ProfessionBarChart
