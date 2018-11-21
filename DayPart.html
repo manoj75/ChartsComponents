@@ -1,0 +1,160 @@
+<html>
+    <head>
+        <link href="bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="dc.css"/>
+        <script type="text/javascript" src="js/d3.js"></script>
+        <script type="text/javascript" src="js/crossfilter.js"></script>
+        <script type="text/javascript" src="js/dc.js"></script>
+        <script type="text/javascript" src="reductio.min.js"></script>       
+    </head>
+    <body>MedData Dashboard</body>
+    <div class="container">
+        <div class="row">
+            <div id="selectProfession">
+                <div>
+                    <a class='reset' href="javascript:console.log(selectProfession);selectProfession.filterAll();dc.redrawAll('reductio')"  style='visibility: hidden;'>reset</a>
+                </div>
+            </div>
+        </div>
+        <div class="row">    
+            <div id="ring-chart-morning-exposure" class="col-sm-6"></div>
+            <div id="row-chart-evening-profession" class="col-sm-6"></div>
+        </div>
+    </div>   
+<script language="javascript">
+var exposureGroup;
+var exposureDim;
+var professionDim;
+
+d3.csv("Audience_Dataset.csv").then(function(data) {    
+    //if (error) throw error;
+    data.forEach(function(d) {
+    d["Exposed"] = +d["Exposed"];
+    d["Not exposed"] = +d["Not exposed"];
+    d["Targetable"]=+d["Targetable"];
+  });
+
+    ndx=crossfilter(data);
+
+    dayPartDim                  =   ndx.dimension(function(d){return (d["Day Part"])});
+    dayPartGroup                =   dayPartDim.group();
+    //dayPartDim.filter(function(d){})
+    //console.log(dayPartDim.filter(function(d){console.log("pp");console.log(d);return d!="0";}));
+    //dayPartDim.filter(function(d){return d === "Early Afternoon";});
+    //console.log("ppp");
+    console.log(dayPartGroup.all());
+    console.log("----------------------------");
+    console.log(getAfterNoonBins(dayPartGroup).all());
+    console.log(getMorningBins(dayPartGroup).all());
+    console.log("----------------------------");
+    AfterNoonGroup  =   getAfterNoonBins(dayPartGroup);
+    MorningGroup    =   getMorningBins(dayPartGroup);
+    /*var reducer = reductio();
+    reducer.exception(function(d){return d.MDG_PSID;}).exceptionCount(true);
+    reducer.value("Exposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Exposed"]; });
+    reducer.value("NotExposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d["Not exposed"]; });
+    
+    reducer(professionGroup);
+    reducer(specialtyGrpGroup);
+    */
+    /*
+    var reducerTargettable = reductio();
+    reducerTargettable.exception(function(d){return d.MDG_PSID;}).exceptionCount(function(d){if(d.Targetable==1) return d.MDG_PSID;});
+    reducerTargettable.value("Exposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d.Targetable === 1 ? d["Exposed"]:0; });
+    reducerTargettable.value("NotExposed").exception(function(d) { return d.MDG_PSID; }).exceptionSum(function(d) { return d.Targetable === 1 ? d["Not exposed"]:0; });
+
+    reducerTargettable(ProfessionTargettableGroup);
+    reducerTargettable(specialtyGrpTargettableGroup);
+    */
+    
+    //var ExposureRing        = dc.pieChart("#ring-chart-exposure","reductio");
+
+function getMorningBins(source_group) {
+    var bins=Array.prototype.slice.call(arguments,1);
+    //console.log(bins);
+    return{
+        all:function()
+        {
+            return source_group.all().filter(function(d){
+                //console.log("lllll");
+                //console.log(d);
+                if (d.key!="0" && (d.key=="Morning"||d.key=="Late Night"||d.key=="Late Morning"))
+                {
+                    return d;
+                }
+            })
+        }
+    };
+}
+
+function getAfterNoonBins(source_group) {
+    var bins=Array.prototype.slice.call(arguments,1);
+    //console.log(bins);
+    return{
+        all:function()
+        {
+            return source_group.all().filter(function(d){
+                //console.log("lllll");
+                //console.log(d);
+                if (d.key!="0" && (d.key=="Early Afternoon"||d.key=="Early Evening"||d.key=="Late Afternoon"))
+                {
+                    return d;
+                }
+            })
+        }
+    };
+}
+
+function getTops(source_group,count) {
+    return{
+        all:function()
+        {
+            if (count==0)//Send all groups
+            {
+                return source_group.all();
+            }
+            else
+            {
+                return source_group.top(count);
+            }
+        }
+    };
+}
+var DayPartMorningRing        = dc.pieChart("#ring-chart-morning-exposure","reductio");
+var DayPartAfternoonRing        = dc.pieChart("#row-chart-evening-profession","reductio");
+
+DayPartMorningRing
+.width(768)
+.height(480)
+.slicesCap(4)
+.innerRadius(100)
+.dimension(dayPartDim)
+.group(MorningGroup)
+.legend(dc.legend())
+    // workaround for #703: not enough data is accessible through .label() to display percentages
+.on('pretransition', function(chart) {
+        chart.selectAll('text.pie-slice').text(function(d) {
+            return d.data.key + ' ' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%';
+        })
+});
+
+DayPartAfternoonRing
+.width(768)
+.height(480)
+.slicesCap(4)
+.innerRadius(100)
+.dimension(dayPartDim)
+.group(AfterNoonGroup)
+.legend(dc.legend())
+// workaround for #703: not enough data is accessible through .label() to display percentages
+.on('pretransition', function(chart) {
+    chart.selectAll('text.pie-slice').text(function(d) {
+        return d.data.key + ' ' + dc.utils.printSingleValue((d.endAngle - d.startAngle) / (2*Math.PI) * 100) + '%';
+    })
+});
+
+dc.renderAll("reductio");
+});
+
+    </script>
+    </html>
