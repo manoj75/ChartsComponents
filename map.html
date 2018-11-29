@@ -13,7 +13,7 @@
             <div class="container">
                     <h2>Impressions by region</h2>
                     <div id="us-chart">
-                        <strong>VC Distribution by Region (color: total number of Impressions)</strong>
+                        <strong>Distribution by Region (color: total number of Impressions)</strong>
                     </div>
                 </div>
     </body>
@@ -37,29 +37,32 @@ var chartExample = {
             usChart.width(990)
                     .height(500)
                     .dimension(regionDim)
-                    .group(regionGroup)                
-                    .colors(d3.scaleOrdinal().range(
-                            ["pink", "orange", "grey", "purple", "black", "blue", "yellow"]))
-                    .colorDomain([1, 25000])
-                    .colorCalculator(function (d) { console.log(d);return d ? usChart.colors()(d) : '#ccc'; })
+                    .group(regionGroup)             
+                    .colors(["#DDA0DD", "#DA70D6", "#BA55D3", "#8A2BE2", "#8B008B", "#4B0082"/*, "#32CD32", "#228B22", "#006400", "#006400"*/])
+                    .colorDomain([0, 20000])   
+                    //.colors(d3.scaleOrdinal().range(["pink", "orange", "grey", "purple", "black", "blue", "yellow"]))
+                    //.colorDomain([1, 25000])
+                    .colorCalculator(function (d) { console.log("-----");console.log(d);console.log(usChart.colors()(d));console.log("++++++");return d ? usChart.colors()(d) : '#ccc'; })
                     .overlayGeoJson(statesJson.features, "state", function (d) 
                     {
                         return d.properties.region;
                     });
-            dc.renderAll();
+                    //var color = d3.scale.threshold().domain([10, 200, 1000, 2000, 5000, 10000, 20000, 40000, 50000]).range(["#fff7ec","#fee8c8","#fdd49e","#fdbb84","#fc8d59","#ef6548","#d7301f","#b30000","#7f0000"]);
+                    dc.renderAll();
             var labelG = d3.select("svg")
                         .append("svg:g") 
                         .attr("id", "labelG") 
                         .attr("class", "Title");
             var project = d3.geoAlbersUsa(); 
             
-            labelG.selectAll("text") 
+            /*labelG.selectAll("text") 
             .data(labels.features) 
                 .enter().append("svg:text") 
                 .text(function(d){return d.properties.name;}) 
                 .attr("x", function(d){return project(d.geometry.coordinates)[0];}) 
                 .attr("y", function(d){return project(d.geometry.coordinates)[1];}) 
                 .attr("dx", "-1em");
+                */
         });        
     },
     initData: function () 

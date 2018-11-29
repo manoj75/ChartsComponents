@@ -23,8 +23,8 @@
             <div id="bar-chart-specialtyGroup" class="col-sm-6"></div>
         </div>
         <div class="row">    
-                <div id="bar-chart-profession-target" class="col-sm-6"></div>
-                <div id="bar-chart-specialtyGroup-target" class="col-sm-6"></div>
+            <div id="bar-chart-profession-target" class="col-sm-6"></div>
+            <div id="bar-chart-specialtyGroup-target" class="col-sm-6"></div>
         </div>
             
     </div>   
@@ -112,17 +112,20 @@ function getTops(source_group,count) {
 var ProfessionBarChart  = dc.barChart("#bar-chart-profession","reductio");
 var TopProfession = getTops(professionGroup,0);
 ProfessionBarChart
-    .width(400)
-    .height(380)
+    .margins({top: 50, right: 20, left: 50, bottom: 50})
+    .width(500)
+    .height(400)
+    .gap(50)
     .x(d3.scaleBand())
     .xUnits(dc.units.ordinal)
     .brushOn(false)
     .xAxisLabel('Profession')
-    //.yAxisLabel('')
+    .yAxisLabel('Number of Audience')
     .dimension(professionDim)
     .barPadding(0.1)
     .outerPadding(0.05)
     .group(TopProfession,"Exposed")
+    
     .valueAccessor(function(p)
     {
         //console.log(p);
@@ -136,26 +139,55 @@ ProfessionBarChart
     {
         return p.value.NotExposed.exceptionSum;
     })
-    .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5));
+    .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+    .on("pretransition",function(ProfessionBarChart)
+                        {
+                            //console.log(ProfessionBarChart.yAxis().ticks());
+                            ProfessionBarChart.selectAll("g.stack rect.bar").style("fill", function(d){
+                            //console.log(d);
+                            //console.log(d.layer);
+                            if(d.layer=="Exposed")
+                                return "#3A8DDE";
+                            else
+                                return "#93D500";
+                            });
+                            ProfessionBarChart.selectAll("g.dc-legend-item rect").style("fill", function(d){
+                            //console.log("oooooooo");
+                            //console.log(d);
+                            //console.log("oooooooo");
+                            if(d.name=="Exposed")
+                                return "#3A8DDE";
+                            else
+                                return "#93D500";
+                            });
+                            
+                        });     
 
+
+ProfessionBarChart.yAxis().ticks(5).tickSize(10);
+console.log(ProfessionBarChart.xAxis);
 
 var SpecialtyGroupBarChart  = dc.barChart("#bar-chart-specialtyGroup","reductio");
 var TopSpecialtyGroup = getTops(specialtyGrpGroup,5);
 //console.log(TopSpecialtyGroup.all());
+
 SpecialtyGroupBarChart
-    .width(400)
-    .height(380)
+    .margins({top: 50, right: 20, left: 50, bottom: 50})
+    .width(500)
+    .height(400)
+    .gap(50)
     .x(d3.scaleBand())
     .xUnits(dc.units.ordinal)
     .brushOn(false)
-    .xAxisLabel('Specialty Group')
-    //.yAxisLabel('')
+    .xAxisLabel('Profession')
+    .yAxisLabel('Number of Audience')
     .dimension(specialtyGrpDim)
     .barPadding(0.1)
     .outerPadding(0.05)
     .group(TopSpecialtyGroup,"Exposed")
     .valueAccessor(function(p)
     {
+        //console.log(p);
         return p.value.Exposed.exceptionSum;
     })
     .title(function(d) 
@@ -166,20 +198,44 @@ SpecialtyGroupBarChart
     {
         return p.value.NotExposed.exceptionSum;
     })
-    .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5));
+    .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+    .on("pretransition",function(SpecialtyGroupBarChart)
+                        {
+                            SpecialtyGroupBarChart.selectAll("g.stack rect.bar").style("fill", function(d){
+                            //console.log(d);
+                            //console.log(d.layer);
+                            if(d.layer=="Exposed")
+                                return "#3A8DDE";
+                            else
+                                return "#93D500";
+                            });
+                            SpecialtyGroupBarChart.selectAll("g.dc-legend-item rect").style("fill", function(d){
+                            //console.log("oooooooo");
+                            //console.log(d);
+                            //console.log("oooooooo");
+                            if(d.name=="Exposed")
+                                return "#3A8DDE";
+                            else
+                                return "#93D500";
+                            });
+                            SpecialtyGroupBarChart.select('path').style({ 'stroke': 'black', 'fill': 'none', 'stroke-width': '1px'}); 
+                        });     
+
 
 
 
 var TargettableProfessionGroupBarChart  = dc.barChart("#bar-chart-profession-target","reductio");
 var TopProfessionTargettableGroup = getTops(ProfessionTargettableGroup,3);
 TargettableProfessionGroupBarChart
-    .width(400)
-    .height(380)
+    .margins({top: 50, right: 20, left: 50, bottom: 50})
+    .width(500)
+    .height(400)
+    .gap(50)
     .x(d3.scaleBand())
     .xUnits(dc.units.ordinal)
     .brushOn(false)
     .xAxisLabel('Professio')
-    //.yAxisLabel('')
+    .yAxisLabel('Number of Audience')
     .dimension(professionDim)
     .barPadding(0.1)
     .outerPadding(0.05)
@@ -196,7 +252,28 @@ TargettableProfessionGroupBarChart
     {
         return p.value.NotExposed.exceptionSum;
     })
-    .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5));
+    .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+    .on("pretransition",function(TargettableProfessionGroupBarChart)
+                        {
+                            TargettableProfessionGroupBarChart.selectAll("g.stack rect.bar").style("fill", function(d){
+                            //console.log(d);
+                            //console.log(d.layer);
+                            if(d.layer=="Exposed")
+                                return "#3A8DDE";
+                            else
+                                return "#93D500";
+                            });
+                            TargettableProfessionGroupBarChart.selectAll("g.dc-legend-item rect").style("fill", function(d){
+                            //console.log("oooooooo");
+                            //console.log(d);
+                            //console.log("oooooooo");
+                            if(d.name=="Exposed")
+                                return "#3A8DDE";
+                            else
+                                return "#93D500";
+                            });
+                        }); 
+
 
 
 
@@ -206,13 +283,15 @@ var TargettableSpecialtyGroupBarChart  = dc.barChart("#bar-chart-specialtyGroup-
 var TopTargettableSpecialtyGroup = getTops(specialtyGrpTargettableGroup,3);
 //console.log(TopSpecialtyGroup.all());
 TargettableSpecialtyGroupBarChart
-    .width(400)
-    .height(380)
+    .margins({top: 50, right: 20, left: 50, bottom: 50})
+    .width(500)
+    .height(400)
+    .gap(50)
     .x(d3.scaleBand())
     .xUnits(dc.units.ordinal)
     .brushOn(false)
     .xAxisLabel('Speciality Group')
-    //.yAxisLabel('')
+    .yAxisLabel('Number of Audience')
     .dimension(specialtyGrpDim)
     .barPadding(0.1)
     .outerPadding(0.05)
@@ -229,7 +308,28 @@ TargettableSpecialtyGroupBarChart
     {
         return p.value.NotExposed.exceptionSum;
     })
-    .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5));
+    .legend(dc.legend().x(100).y(0).itemHeight(13).gap(5))
+    .on("pretransition",function(TargettableSpecialtyGroupBarChart)
+                        {
+                            TargettableSpecialtyGroupBarChart.selectAll("g.stack rect.bar").style("fill", function(d){
+                            //console.log(d);
+                            //console.log(d.layer);
+                            if(d.layer=="Exposed")
+                                return "#3A8DDE";
+                            else
+                                return "#93D500";
+                            });
+                            TargettableSpecialtyGroupBarChart.selectAll("g.dc-legend-item rect").style("fill", function(d){
+                            //console.log("oooooooo");
+                            //console.log(d);
+                            //console.log("oooooooo");
+                            if(d.name=="Exposed")
+                                return "#3A8DDE";
+                            else
+                                return "#93D500";
+                            });
+                        }); 
+
 
 /*
     ProfessionBarChart
